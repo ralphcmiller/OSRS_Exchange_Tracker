@@ -47,6 +47,24 @@ def get_historical_data(item_id):
     # Return historical data as JSON response
     return jsonify(data)
 
+# New route for fetching updated table data
+@app.route('/get_updated_table_data', methods=['GET'])
+def get_updated_table_data():
+    # Connect to the SQLite database
+    conn = sqlite3.connect('osrs_prices.db')
+    cursor = conn.cursor()
+
+    # Fetch updated item data from the 'items' table
+    cursor.execute("SELECT * FROM items")
+    items = cursor.fetchall()
+
+    # Close the database connection
+    conn.close()
+
+    # Render the updated table data as HTML
+    table_html = render_template('table_data.html', items=items)  # Create a template for the table data
+    return jsonify({'html': table_html}), 200
+
 def run_fetch_prices_script():
     while True:
         # Run the fetch-prices.py script using subprocess
@@ -56,17 +74,6 @@ def run_fetch_prices_script():
             print(f"Error running fetch-prices.py: {e}")
         # Sleep for a specified interval (in seconds)
         time.sleep(300)  # 5min interval
-
-# New route for manually triggering data update
-@app.route('/fetch_updated_data', methods=['POST'])
-def fetch_updated_data():
-    # Run the fetch-prices.py script using subprocess
-    try:
-        subprocess.run(['python', 'functions/fetch-prices.py'], check=True)
-    except subprocess.CalledProcessError as e:
-        return jsonify({'message': f"Error running fetch-prices.py: {e}"}), 500
-    
-    return jsonify({'message': 'Data update successful'}), 200
 
 # Function to run the cleanup-db.py script
 def run_cleanup_db_script():
