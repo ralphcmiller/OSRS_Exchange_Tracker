@@ -3,3 +3,4 @@ __pycache__/*
 osrs_prices.db
 osrsdb/__pycache__/cleanupdb.cpython-311.pyc
 osrsdb/__pycache__/fetchprices.cpython-311.pyc
+osrs_prices.db

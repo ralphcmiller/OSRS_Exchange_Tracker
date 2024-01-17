@@ -1,5 +1,6 @@
 # OSRS_Exchange_Tracker
 Python program to gather grand exchange item data via OSRS Api, allowing the user to track price fluctuations of items via a Flask Webapp run locally
+Price action is updated every minute
 
 # How to run
 - Clone the repo
