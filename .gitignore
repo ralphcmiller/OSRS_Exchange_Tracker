@@ -1,6 +1,8 @@
 /.venv/*
 __pycache__/*
 osrs_prices.db
-osrsdb/__pycache__/cleanupdb.cpython-311.pyc
-osrsdb/__pycache__/fetchprices.cpython-311.pyc
+osrsdb/__pycache__/*
 osrs_prices.db
+static/item_names.json
+item_mapping.json
+static/item_names.json

@@ -30,23 +30,30 @@
 			    pagination: "local",  // Enable local (client-side) pagination
 			    paginationSize: 10,   // Number of items per page
 			    data: {{ initial_data|safe }},  // Load initial data
-			    columns: [
-			        {title: "ID", field: "id"},
-			        {title: "Name", field: "name"},
-			        {title: "Last Updated", field: "last_updated"},
-			        {title: "High Price", field: "price_high"},
-			        {title: "Low Price", field: "price_low"},
-			        {title: "Low Alch", field: "lowalch"},
-			        {title: "High Alch", field: "highalch"},
-			        {title: "Buy Limit", field: "buy_limit"},
-			        {title: "Release Date", field: "release_date"},
-			        {title: "Examine", field: "examine"},
-			        {title: "Wiki URL", field: "wiki_url", formatter:"link", formatterParams: {
-			            labelField:"wiki_url",
-			            urlPrefix:"",
-			            target:"_blank"
-			        }},
-			    ],
+				columns: [
+					{title: "ID", field: "id"},
+					{title: "Name", field: "name"},
+					{title: "Last Updated", field: "last_updated"},
+					{title: "High Price", field: "price_high"},
+					{title: "Low Price", field: "price_low"},
+					{title: "Buy Limit", field: "buy_limit"},
+					{title: "High 5min Vol", field: "high_five_min_vol"},
+					{title: "Low 5min Vol", field: "low_five_min_vol"},
+					{title: "Avg High 5min Price", field: "avg_high_five_min_price"},
+					{title: "Avg Low 5min Price", field: "avg_low_five_min_price"},
+					{title: "High 1hr Vol", field: "high_hr_vol"},
+					{title: "Low 1hr Vol", field: "low_hr_vol"},
+					{title: "Avg High 1hr Price", field: "avg_high_hr_price"},
+					{title: "Avg Low 1hr Price", field: "avg_low_hr_price"},
+					{title: "Low Alch", field: "lowalch"},
+					{title: "High Alch", field: "highalch"},
+					{title: "Examine", field: "examine"},
+					{title: "Wiki URL", field: "wiki_url", formatter:"link", formatterParams: {
+						labelField:"wiki_url",
+						urlPrefix:"",
+						target:"_blank"
+					}},
+				],
 			});
 			// Initialize Chart.js
 			var ctx = document.getElementById('itemHistoryGraph').getContext('2d');
