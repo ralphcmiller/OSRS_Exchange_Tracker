@@ -5,4 +5,4 @@ osrsdb/__pycache__/*
 osrs_prices.db
 static/item_names.json
 item_mapping.json
-static/item_names.json
+
