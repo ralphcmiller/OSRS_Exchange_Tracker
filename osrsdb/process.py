@@ -32,8 +32,16 @@ def process_and_store_api_data():
         item_name = mapping_data.get('name', '')
         # Construct the wiki URL
         wiki_url = "https://oldschool.runescape.wiki/w/" + item_name.replace(' ', '_') if item_name else ''
+        #Calculate margin
+        high_value = latest_data.get('high')
+        low_value = latest_data.get('low')
+        # Check if 'high' and 'low' are not None and are integers
+        if high_value is not None and low_value is not None and isinstance(high_value, int) and isinstance(low_value, int):
+            margin = high_value - low_value
+        else:
+            # Set margin to None if 'high' or 'low' is missing or not an integer
+            margin = None 
 
-        # Data for items table
         items_data[item_id] = {
             'id': item_id,
             'name': mapping_data.get('name'),
@@ -53,6 +61,7 @@ def process_and_store_api_data():
             'highalch': mapping_data.get('highalch'),
             'examine': mapping_data.get('examine'),
             'wiki_url': wiki_url,
+            'margin': margin,
         }
 
         # Data for item_history table

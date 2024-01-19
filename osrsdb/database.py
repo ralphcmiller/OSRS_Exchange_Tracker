@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS items (
     lowalch INTEGER,
     highalch INTEGER,
     examine TEXT,
-    wiki_url TEXT
+    wiki_url TEXT,
+    margin INTEGER
 );
 """
 item_history_table_sql = """
@@ -70,8 +71,8 @@ def update_items_table(conn, item_data):
               (id, name, last_updated, price_high, price_low, buy_limit,
                high_five_min_vol, low_five_min_vol, avg_high_five_min_price, 
                avg_low_five_min_price, high_hr_vol, low_hr_vol, avg_high_hr_price, 
-               avg_low_hr_price, lowalch, highalch, examine, wiki_url) 
-              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) '''
+               avg_low_hr_price, lowalch, highalch, examine, wiki_url, margin) 
+              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) '''
     cursor = conn.cursor()
     for item_id, data in item_data.items():
         # Parse the data to match the database columns
@@ -79,7 +80,7 @@ def update_items_table(conn, item_data):
                 data.get('price_high'), data.get('price_low'), data.get('buy_limit'),
                 data.get('high_five_min_vol'), data.get('low_five_min_vol'), data.get('avg_high_five_min_price'), 
                 data.get('avg_low_five_min_price'), data.get('high_hr_vol'), data.get('low_hr_vol'), data.get('avg_high_hr_price'), 
-                data.get('avg_low_hr_price'), data.get('lowalch'), data.get('highalch'), data.get('examine'), data.get('wiki_url'))
+                data.get('avg_low_hr_price'), data.get('lowalch'), data.get('highalch'), data.get('examine'), data.get('wiki_url'), data.get('margin'))
         cursor.execute(sql, item)
     conn.commit()
 

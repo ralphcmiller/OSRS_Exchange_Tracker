@@ -30,6 +30,11 @@
 				<datalist id="item-names"></datalist>
 			</div>
 		</div>
+		    <!-- Add the "Total Volume" filter input field here -->
+			<div>
+				<label for="total-volume-filter">Total Volume Greater Than:</label>
+				<input type="number" id="total-volume-filter" placeholder="Enter total volume...">
+			</div>
 		<!-- Table Container -->
 		<div id="data-table"></div>
 		<!-- Graph Container -->
@@ -51,26 +56,45 @@
 				columns: [
 					{title: "ID", field: "id"},
 					{title: "Name", field: "name"},
-					{title: "Last Updated", field: "last_updated"},
-					{title: "High Price", field: "price_high"},
-					{title: "Low Price", field: "price_low"},
+					{title: "High", field: "price_high"},
+					{title: "Low", field: "price_low"},
+					{title: "Margin", field: "margin"},
+					{title: "H-5min Vol", field: "high_five_min_vol"},
+					{title: "L-5min Vol", field: "low_five_min_vol"},
+					{title: "Avg H-5min Price", field: "avg_high_five_min_price"},
+					{title: "Avg L-5min Price", field: "avg_low_five_min_price"},
+					{title: "H-1hr Vol", field: "high_hr_vol"},
+					{title: "L-1hr Vol", field: "low_hr_vol"},
+					{title: "Avg H-1hr Price", field: "avg_high_hr_price"},
+					{title: "Avg L-1hr Price", field: "avg_low_hr_price"},
 					{title: "Buy Limit", field: "buy_limit"},
-					{title: "High 5min Vol", field: "high_five_min_vol"},
-					{title: "Low 5min Vol", field: "low_five_min_vol"},
-					{title: "Avg High 5min Price", field: "avg_high_five_min_price"},
-					{title: "Avg Low 5min Price", field: "avg_low_five_min_price"},
-					{title: "High 1hr Vol", field: "high_hr_vol"},
-					{title: "Low 1hr Vol", field: "low_hr_vol"},
-					{title: "Avg High 1hr Price", field: "avg_high_hr_price"},
-					{title: "Avg Low 1hr Price", field: "avg_low_hr_price"},
-					{title: "Low Alch", field: "lowalch"},
+					{title: "Last Updated", field: "last_updated",
+						formatter: function (cell, formatterParams, onRendered) {
+							var data = cell.getRow().getData();
+							var lastUpdated = data.last_updated;
+
+							// Convert the timestamp to a Date object
+							var date = new Date(lastUpdated);
+
+							// Get the local time in 12-hour format with AM/PM
+							var hours = date.getHours();
+							var minutes = date.getMinutes();
+							var ampm = hours >= 12 ? 'PM' : 'AM';
+							hours = hours % 12 || 12; // Handle midnight (0) as 12 AM
+							minutes = minutes < 10 ? '0' + minutes : minutes;
+							var strTime = hours + ':' + minutes + ' ' + ampm;
+
+							return strTime;
+						},
+					},
+/* 					{title: "Low Alch", field: "lowalch"},
 					{title: "High Alch", field: "highalch"},
 					{title: "Examine", field: "examine"},
 					{title: "Wiki URL", field: "wiki_url", formatter:"link", formatterParams: {
 						labelField:"wiki_url",
 						urlPrefix:"",
 						target:"_blank"
-					}},
+					}}, */
 				],
 			});
 			// Initialize Chart.js
@@ -165,7 +189,16 @@
 			}
 			
 			document.getElementById('search-box').addEventListener("input", updateSearch);
-			
+			// Event listener for the "Total Volume" filter input
+			var totalVolumeFilterInput = document.getElementById('total-volume-filter');
+
+			totalVolumeFilterInput.addEventListener('input', function () {
+				var totalVolumeValue = parseInt(totalVolumeFilterInput.value) || 0;
+				table.setFilter(function (data) {
+					var totalVolume = data.high_five_min_vol + data.low_five_min_vol;
+					return totalVolume >= totalVolumeValue;
+				});
+			});
 			function updateGraph(item_id, item_name) {
 				lastSelectedItemId = item_id;
 				lastSelectedItemName = item_name;
@@ -209,10 +242,6 @@
 					})
 					.catch(error => console.error('Error:', error));
 			}
-
-
-
-
 			table.on("rowClick", function(e, row) {
 				var item_id = row.getData().id;
 				var item_name = row.getData().name;

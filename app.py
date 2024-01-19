@@ -1,11 +1,24 @@
 from flask import Flask, jsonify, render_template_string
 import json
 import sqlite3
+from osrsdb.itemmapping import load_item_mapping
 from osrsdb.cleanup import clean_database
 from osrsdb.process import process_and_store_api_data
 from osrsdb.database import create_connection
 
 app = Flask(__name__)
+# Function to run initialization code when the app starts
+def initialize_app():
+    print("Initialization running...")
+    conn = create_connection()
+    conn.close()
+    load_item_mapping()
+    clean_database()
+    print("Initialization complete.")
+
+# Run only on startup
+with app.app_context():
+    initialize_app()
 
 def fetch_data():
     conn = create_connection()
@@ -38,4 +51,4 @@ def get_history(item_id):
     return jsonify([dict(row) for row in history])
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
