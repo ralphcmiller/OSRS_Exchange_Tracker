@@ -2,7 +2,7 @@
 __pycache__/*
 osrs_prices.db
 osrsdb/__pycache__/*
-osrs_prices.db
+*Db.*
 static/item_names.json
 item_mapping.json
 
