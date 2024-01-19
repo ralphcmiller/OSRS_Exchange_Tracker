@@ -4,25 +4,48 @@
 		<meta charset="UTF-8">
 		<title>OSRS Item Data Display with Tabulator</title>
 		<link href="https://cdn.jsdelivr.net/npm/tabulator-tables/dist/css/tabulator.min.css" rel="stylesheet">
+		<style>
+		/* Define a CSS class for selected rows with !important */
+		.selected-row {
+			background-color: #4CAF50 !important; /* Green background color */
+			color: rgb(0, 0, 0) !important; /* black text color */
+		}
+		#chart-container {
+			display: none; /* Hide the container initially */
+			width: 100%; /* Make the container occupy the full width of its parent */
+			height: 100%; /* Make the container occupy the full height of its parent */
+			box-sizing: border-box; /* Include padding and border in the element's total width and height */
+		}
+
+		</style>
 		<script src="https://cdn.jsdelivr.net/npm/tabulator-tables/dist/js/tabulator.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	</head>
 	<body>
-		<h1>OSRS Item Data</h1>
-		<div id="data-table"></div>
-		<!-- Container for Search Bar and Graph -->
-		<div style="display: flex; justify-content: start; align-items: start; margin-top: 20px;">
+		<div style="display: flex; justify-content: flex-start; align-items: center; margin-top: 20px;">
+			<h1 style="margin-right: 20px;">OSRS Item Data</h1>
 			<!-- Search Box Container -->
-			<div style="margin-right: 20px;">
-				<input type="text" id="search-box" list="item-names" placeholder="Search items...">
+			<div>
+				<input type="text" id="search-box" list="item-names" placeholder="Search items..." style="width: 300px; height: 30px;">
 				<datalist id="item-names"></datalist>
 			</div>
-			<!-- Graph Container -->
-			<div style="flex-grow: 1; width: 600px; max-width: 90%; height: 600px;">
-				<!-- Set a fixed height for the container -->
-				<canvas id="itemHistoryGraph" style="width: 100%; height: 90%;"></canvas>
-			</div>
 		</div>
+		    <!-- Add the "Total Volume" filter input field here -->
+			<div>
+				<label for="total-volume-filter">Total Volume Greater Than:</label>
+				<input type="number" id="total-volume-filter" placeholder="Enter total volume...">
+			</div>
+		<!-- Table Container -->
+		<div id="data-table"></div>
+		<!-- Graph Container -->
+		<div id="chart-container" style="display: none; margin-top: 20px;">
+			<h2 id="chart-title">Item History Chart</h2>
+			<canvas id="itemHistoryGraph" style="width: 100%; height: 80px;"></canvas>
+		</div>
+	
+		
+		
+			
 		<script>
 			var table = new Tabulator("#data-table", {
 			    height: "auto",
@@ -30,53 +53,109 @@
 			    pagination: "local",  // Enable local (client-side) pagination
 			    paginationSize: 10,   // Number of items per page
 			    data: {{ initial_data|safe }},  // Load initial data
-			    columns: [
-			        {title: "ID", field: "id"},
-			        {title: "Name", field: "name"},
-			        {title: "Last Updated", field: "last_updated"},
-			        {title: "High Price", field: "price_high"},
-			        {title: "Low Price", field: "price_low"},
-			        {title: "Low Alch", field: "lowalch"},
-			        {title: "High Alch", field: "highalch"},
-			        {title: "Buy Limit", field: "buy_limit"},
-			        {title: "Release Date", field: "release_date"},
-			        {title: "Examine", field: "examine"},
-			        {title: "Wiki URL", field: "wiki_url", formatter:"link", formatterParams: {
-			            labelField:"wiki_url",
-			            urlPrefix:"",
-			            target:"_blank"
-			        }},
-			    ],
+				columns: [
+					{title: "ID", field: "id"},
+					{title: "Name", field: "name"},
+					{title: "High", field: "price_high"},
+					{title: "Low", field: "price_low"},
+					{title: "Margin", field: "margin"},
+					{title: "H-5min Vol", field: "high_five_min_vol"},
+					{title: "L-5min Vol", field: "low_five_min_vol"},
+					{title: "Avg H-5min Price", field: "avg_high_five_min_price"},
+					{title: "Avg L-5min Price", field: "avg_low_five_min_price"},
+					{title: "H-1hr Vol", field: "high_hr_vol"},
+					{title: "L-1hr Vol", field: "low_hr_vol"},
+					{title: "Avg H-1hr Price", field: "avg_high_hr_price"},
+					{title: "Avg L-1hr Price", field: "avg_low_hr_price"},
+					{title: "Buy Limit", field: "buy_limit"},
+					{title: "Last Updated", field: "last_updated",
+						formatter: function (cell, formatterParams, onRendered) {
+							var data = cell.getRow().getData();
+							var lastUpdated = data.last_updated;
+
+							// Convert the timestamp to a Date object
+							var date = new Date(lastUpdated);
+
+							// Get the local time in 12-hour format with AM/PM
+							var hours = date.getHours();
+							var minutes = date.getMinutes();
+							var ampm = hours >= 12 ? 'PM' : 'AM';
+							hours = hours % 12 || 12; // Handle midnight (0) as 12 AM
+							minutes = minutes < 10 ? '0' + minutes : minutes;
+							var strTime = hours + ':' + minutes + ' ' + ampm;
+
+							return strTime;
+						},
+					},
+/* 					{title: "Low Alch", field: "lowalch"},
+					{title: "High Alch", field: "highalch"},
+					{title: "Examine", field: "examine"},
+					{title: "Wiki URL", field: "wiki_url", formatter:"link", formatterParams: {
+						labelField:"wiki_url",
+						urlPrefix:"",
+						target:"_blank"
+					}}, */
+				],
 			});
 			// Initialize Chart.js
 			var ctx = document.getElementById('itemHistoryGraph').getContext('2d');
 			var itemHistoryChart = new Chart(ctx, {
-			    type: 'line',
-			    data: {
-			        labels: [],  // x-axis labels (e.g., dates)
-			        datasets: [{
-			            label: 'High Price',
-			            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-			            borderColor: 'rgba(255, 99, 132, 1)',
-			            data: []  // high price data
-			        },
-			        {
-			            label: 'Low Price',
-			            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-			            borderColor: 'rgba(54, 162, 235, 1)',
-			            data: []  // low price data
-			        }]
-			},
-			options: {
-			    scales: {
-			        yAxes: [{
-			            ticks: {
-			                beginAtZero: true
-			            }
-			        }]
-			    }
-			}
+				type: 'bar', // Change the chart type to bar
+				data: {
+					labels: [], // x-axis labels (e.g., dates)
+					datasets: [
+						{
+							type: 'line', // Create a line dataset for high price
+							label: 'High Price',
+							backgroundColor: 'rgba(255, 99, 132, 0.2)',
+							borderColor: 'rgba(255, 99, 132, 1)',
+							data: [], // high price data
+							yAxisID: 'price-y-axis' // Assign a custom y-axis for prices
+						},
+						{
+							type: 'line', // Create a line dataset for low price
+							label: 'Low Price',
+							backgroundColor: 'rgba(54, 162, 235, 0.2)',
+							borderColor: 'rgba(54, 162, 235, 1)',
+							data: [], // low price data
+							yAxisID: 'price-y-axis' // Assign a custom y-axis for prices
+						},
+						{
+							type: 'bar', // Create a bar dataset for 5m high volume
+							label: '5m High Volume',
+							backgroundColor: 'rgba(255, 99, 132, 0.2)', // Reddish background
+							borderColor: 'rgba(255, 99, 132, 1)', // Red border
+							data: [], // 5m high volume data
+							yAxisID: 'volume-y-axis' // Assign a custom y-axis for volumes
+						},
+						{
+							type: 'bar', // Create a bar dataset for 5m low volume
+							label: '5m Low Volume',
+							backgroundColor: 'rgba(54, 162, 235, 0.2)', // Blueish background
+							borderColor: 'rgba(54, 162, 235, 1)', // Blue border
+							data: [], // 5m low volume data
+							yAxisID: 'volume-y-axis' // Assign a custom y-axis for volumes
+						}
+
+					]
+				},
+				options: {
+					scales: {
+						x: {
+							stacked: true // Stack the bars for the same x-axis labels
+						},
+						'price-y-axis': {
+							position: 'right', // Position the price y-axis on the left
+							beginAtZero: false
+						},
+						'volume-y-axis': {
+							position: 'left', // Position the volume y-axis on the right
+							beginAtZero: true
+						}
+					}
+				}
 			});
+
 
 			var lastSelectedItemId = null; // Variable to store the last selected item ID
 			
@@ -110,45 +189,68 @@
 			}
 			
 			document.getElementById('search-box').addEventListener("input", updateSearch);
-			
-            function updateGraph(item_id) {
-                lastSelectedItemId = item_id;
-                fetch('/get-history/' + item_id)
-                    .then(response => response.json())
-                    .then(data => {
-                        itemHistoryChart.data.labels = data.map(item => {
-                            // Convert timestamp to a Date object
-                            let date = new Date(item.timestamp);
+			// Event listener for the "Total Volume" filter input
+			var totalVolumeFilterInput = document.getElementById('total-volume-filter');
 
-                            // Adjust for local timezone
-                            let localTime = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
-
-                            // Format the time in 12-hour format
-                            let hours = localTime.getHours();
-                            let minutes = localTime.getMinutes();
-                            let ampm = hours >= 12 ? 'PM' : 'AM';
-                            hours = hours % 12;
-                            hours = hours ? hours : 12; // the hour '0' should be '12'
-                            minutes = minutes < 10 ? '0' + minutes : minutes;
-                            let strTime = hours + ':' + minutes + ' ' + ampm;
-
-                            return strTime;
-                        });
-
-                        itemHistoryChart.data.datasets[0].data = data.map(item => item.price_high);
-                        itemHistoryChart.data.datasets[1].data = data.map(item => item.price_low);
-                        itemHistoryChart.update();
-                    })
-                    .catch(error => console.error('Error:', error));
-            }
-
-			table.on("cellClick", function(e, cell){
-			    if(cell.getField() === "name") {
-			        var item_id = cell.getRow().getData().id;
-			        updateGraph(item_id);
-			    }
+			totalVolumeFilterInput.addEventListener('input', function () {
+				var totalVolumeValue = parseInt(totalVolumeFilterInput.value) || 0;
+				table.setFilter(function (data) {
+					var totalVolume = data.high_five_min_vol + data.low_five_min_vol;
+					return totalVolume >= totalVolumeValue;
+				});
 			});
-			
+			function updateGraph(item_id, item_name) {
+				lastSelectedItemId = item_id;
+				lastSelectedItemName = item_name;
+				// Update the chart title with the item name
+				document.getElementById('chart-title').textContent = `Price and Volume History - ${item_name}`;
+				fetch('/get-history/' + item_id)
+					.then(response => response.json())
+					.then(data => {
+						itemHistoryChart.data.labels = data.map(item => {
+							// Convert timestamp to a Date object
+							let date = new Date(item.timestamp);
+
+							// Get the local time in 12-hour format with AM/PM
+							let hours = date.getHours();
+							let minutes = date.getMinutes();
+							let ampm = hours >= 12 ? 'PM' : 'AM';
+							hours = hours % 12 || 12; // Handle midnight (0) as 12 AM
+							minutes = minutes < 10 ? '0' + minutes : minutes;
+							let strTime = hours + ':' + minutes + ' ' + ampm;
+
+							return strTime;
+						});
+
+						itemHistoryChart.data.datasets[0].data = data.map(item => item.price_high);
+						itemHistoryChart.data.datasets[1].data = data.map(item => item.price_low);
+						
+						// Add 5m high volume data to the first bar dataset
+						itemHistoryChart.data.datasets[2].data = data.map(item => item.high_five_min_vol);
+						
+						// Add 5m low volume data to the second bar dataset
+						itemHistoryChart.data.datasets[3].data = data.map(item => item.low_five_min_vol);
+
+						itemHistoryChart.update();
+
+						// Remove the 'selected-row' class from all rows
+						table.getRows().forEach(row => {
+							row.getElement().classList.remove('selected-row');
+						});
+						// Add the 'selected-row' class to the clicked row
+						table.getRow(item_id).getElement().classList.add('selected-row');
+					})
+					.catch(error => console.error('Error:', error));
+			}
+			table.on("rowClick", function(e, row) {
+				var item_id = row.getData().id;
+				var item_name = row.getData().name;
+				updateGraph(item_id, item_name);
+
+				// Show the chart container
+				document.getElementById('chart-container').style.display = 'block';
+			});
+	
 			function refreshData() {
 			    var currentPage = table.getPage();
 			    fetch('/get-data')
@@ -159,7 +261,7 @@
 			                    table.setPage(currentPage);
 			                });
 			            if (lastSelectedItemId !== null) {
-			                updateGraph(lastSelectedItemId);
+			                updateGraph(lastSelectedItemId, lastSelectedItemName);
 			            }
 			        })
 			        .catch(error => console.error('Error:', error));
