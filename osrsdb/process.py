@@ -37,7 +37,8 @@ def process_and_store_api_data():
         low_value = latest_data.get('low')
         # Check if 'high' and 'low' are not None and are integers
         if high_value is not None and low_value is not None and isinstance(high_value, int) and isinstance(low_value, int):
-            margin = high_value - low_value
+            # margin = spread - 1% of high (tax), rounded to nearest integer
+            margin = round((high_value - low_value) - (high_value * 0.01))
         else:
             # Set margin to None if 'high' or 'low' is missing or not an integer
             margin = None 

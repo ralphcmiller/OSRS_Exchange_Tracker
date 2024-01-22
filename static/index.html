@@ -16,7 +16,15 @@
 			height: 100%; /* Make the container occupy the full height of its parent */
 			box-sizing: border-box; /* Include padding and border in the element's total width and height */
 		}
+		#filter-bar > div {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+		}
 
+		#filter-bar input[type="number"] {
+			width: 100px; /* Adjust width as needed */
+		}
 		</style>
 		<script src="https://cdn.jsdelivr.net/npm/tabulator-tables/dist/js/tabulator.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -35,6 +43,18 @@
 				<label for="total-volume-filter">Total Volume Greater Than:</label>
 				<input type="number" id="total-volume-filter" placeholder="Enter total volume...">
 			</div>
+
+			<div id="filter-bar" style="display: flex; justify-content: start; align-items: center; gap: 10px;">
+				<div>
+					<label for="five-min-high-volume-filter">5min High Volume &gt;:</label>
+					<input type="number" id="five-min-high-volume-filter" placeholder="Enter value...">
+				</div>
+				<div>
+					<label for="five-min-low-volume-filter">5min Low Volume &gt;:</label>
+					<input type="number" id="five-min-low-volume-filter" placeholder="Enter value...">
+				</div>
+			</div>		
+
 		<!-- Table Container -->
 		<div id="data-table"></div>
 		<!-- Graph Container -->
@@ -56,18 +76,18 @@
 				columns: [
 					{title: "ID", field: "id"},
 					{title: "Name", field: "name"},
-					{title: "High", field: "price_high"},
-					{title: "Low", field: "price_low"},
-					{title: "Margin", field: "margin"},
-					{title: "H-5min Vol", field: "high_five_min_vol"},
-					{title: "L-5min Vol", field: "low_five_min_vol"},
+					{title: "High", field: "price_high", formatter: "money", formatterParams: {precision: false, symbol: "", thousand: ","}},
+					{title: "Low", field: "price_low", formatter: "money", formatterParams: {precision: false, symbol: "", thousand: ","}},
+					{title: "Margin", field: "margin", formatter: "money", formatterParams: {precision: false, symbol: "", thousand: ","}},
+					{title: "H-5min Vol", field: "high_five_min_vol", formatter: "money", formatterParams: {precision: false, symbol: "", thousand: ","}},
+					{title: "L-5min Vol", field: "low_five_min_vol", formatter: "money", formatterParams: {precision: false, symbol: "", thousand: ","}},
 					{title: "Avg H-5min Price", field: "avg_high_five_min_price"},
 					{title: "Avg L-5min Price", field: "avg_low_five_min_price"},
-					{title: "H-1hr Vol", field: "high_hr_vol"},
-					{title: "L-1hr Vol", field: "low_hr_vol"},
-					{title: "Avg H-1hr Price", field: "avg_high_hr_price"},
-					{title: "Avg L-1hr Price", field: "avg_low_hr_price"},
-					{title: "Buy Limit", field: "buy_limit"},
+					{title: "H-1hr Vol", field: "high_hr_vol", formatter: "money", formatterParams: {precision: false, symbol: "", thousand: ","}},
+					{title: "L-1hr Vol", field: "low_hr_vol", formatter: "money", formatterParams: {precision: false, symbol: "", thousand: ","}},
+					{title: "Avg H-1hr Price", field: "avg_high_hr_price", formatter: "money", formatterParams: {precision: false, symbol: "", thousand: ","}},
+					{title: "Avg L-1hr Price", field: "avg_low_hr_price", formatter: "money", formatterParams: {precision: false, symbol: "", thousand: ","}},
+					{title: "Buy Limit", field: "buy_limit", formatter: "money", formatterParams: {precision: false, symbol: "", thousand: ","}},
 					{title: "Last Updated", field: "last_updated",
 						formatter: function (cell, formatterParams, onRendered) {
 							var data = cell.getRow().getData();
@@ -199,6 +219,7 @@
 					return totalVolume >= totalVolumeValue;
 				});
 			});
+
 			function updateGraph(item_id, item_name) {
 				lastSelectedItemId = item_id;
 				lastSelectedItemName = item_name;
